@@ -28,10 +28,16 @@ def identifica_cor(frame):
     # frame = cv2.flip(frame, -1) # flip 0: eixo x, 1: eixo y, -1: 2 eixos
     frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    # Fazendo ele reconhecer a matiz do creeper verde
+    # Fazendo ele reconhecer a matiz do creeper azul
     cor_menor = np.array([75, 50, 50])
     cor_maior = np.array([140, 255, 255])
     segmentado_cor = cv2.inRange(frame_hsv, cor_menor, cor_maior)
+
+    # Fazendo ele reconhecer a matiz do creeper verde
+    #cor_menor = np.array([120, 50, 50])
+    #cor_maior = np.array([240, 255, 255])
+    #segmentado_cor = cv2.inRange(frame_hsv, cor_menor, cor_maior)
+
 
     #cor_menor = np.array([172, 50, 50])
     #cor_maior = np.array([180, 255, 255])
