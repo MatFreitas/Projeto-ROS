@@ -12,7 +12,7 @@ import cv2
 import time
 from geometry_msgs.msg import Twist, Vector3, Pose
 from nav_msgs.msg import Odometry
-from sensor_msgs.msg import Image, CompressedImage
+from sensor_msgs.msg import Image, CompressedImage, LaserScan
 from cv_bridge import CvBridge, CvBridgeError
 import cormodule
 
@@ -29,6 +29,18 @@ area = 0.0 # Variavel com a area do maior contorno
 # Só usar se os relógios ROS da Raspberry e do Linux desktop estiverem sincronizados. 
 # Descarta imagens que chegam atrasadas demais
 check_delay = False 
+
+# Função do scan.
+def scaneou(dado):
+	if np.array(dado.ranges[0]).round(decimals=2) < 1:
+		velocidade = Twist(Vector3(0.05, 0, 0), Vector3(0, 0, 0.2))
+		velocidade_saida.publish(velocidade)
+		print("Ahead Captain!")
+	elif np.array(dado.ranges[0]).round(decimals=2) > 1.02:
+		velocidade = Twist(Vector3(-0.05, 0, 0), Vector3(0, 0, 0.2))
+		velocidade_saida.publish(velocidade)
+		print("Roll back now!")
+	x = 0
 
 # A função a seguir é chamada sempre que chega um novo frame
 def roda_todo_frame(imagem):
@@ -81,9 +93,17 @@ if __name__=="__main__":
 	# 
 
 	recebedor = rospy.Subscriber(topico_imagem, CompressedImage, roda_todo_frame, queue_size=4, buff_size = 2**24)
+
+	# Subscriber do laser que devolve array com as distÂncias para o giro de 360°.
+	recebe_scan = rospy.Subscriber("/scan", LaserScan, scaneou)
+
 	print("Usando ", topico_imagem)
 
 	velocidade_saida = rospy.Publisher("/cmd_vel", Twist, queue_size = 1)
+
+	# Define a V0 para que o Waffle se volte para os creepers e a publica.
+	#velocidade_inicial = Twist(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, np.pi))
+	#velocidade_saida.publish(velocidade_inicial)
 
 	try:
 
