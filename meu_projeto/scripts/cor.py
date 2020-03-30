@@ -18,7 +18,7 @@ import cormodule
 
 
 bridge = CvBridge()
-
+dadodist = -10
 cv_image = None
 media = []
 centro = []
@@ -32,15 +32,20 @@ check_delay = False
 
 # Função do scan.
 def scaneou(dado):
+	global dadodist
 	if np.array(dado.ranges[0]).round(decimals=2) < 1:
-		velocidade = Twist(Vector3(0.05, 0, 0), Vector3(0, 0, 0.2))
+		velocidade = Twist(Vector3(0.1, 0, 0), Vector3(0, 0, 0))
 		velocidade_saida.publish(velocidade)
 		print("Ahead Captain!")
 	elif np.array(dado.ranges[0]).round(decimals=2) > 1.02:
 		velocidade = Twist(Vector3(-0.05, 0, 0), Vector3(0, 0, 0.2))
 		velocidade_saida.publish(velocidade)
 		print("Roll back now!")
+	dadodist = dado.ranges[0]
 	x = 0
+	print("aaaaaaaaaa")
+	print(dadodist)
+	
 
 # A função a seguir é chamada sempre que chega um novo frame
 def roda_todo_frame(imagem):
@@ -66,7 +71,8 @@ def roda_todo_frame(imagem):
 		cv2.imshow("Camera", cv_image)
 	except CvBridgeError as e:
 		print('ex', e)
-	
+
+
 if __name__=="__main__":
 	rospy.init_node("cor")
 
@@ -101,22 +107,26 @@ if __name__=="__main__":
 
 	velocidade_saida = rospy.Publisher("/cmd_vel", Twist, queue_size = 1)
 
-	# Define a V0 para que o Waffle se volte para os creepers e a publica.
-	#velocidade_inicial = Twist(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, np.pi))
-	#velocidade_saida.publish(velocidade_inicial)
-
 	try:
 
 		while not rospy.is_shutdown():
+
+
 			vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
 			if len(media) != 0 and len(centro) != 0:
 				print("Média dos vermelhos: {0}, {1}".format(media[0], media[1]))
 				print("Centro dos vermelhos: {0}, {1}".format(centro[0], centro[1]))
 
 				if (media[0] > centro[0]):
-					vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
+					if dadodist < 0.25:
+						vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
+					if dadodist > 0.25:
+						vel = Twist(Vector3(0.1,0,0), Vector3(0,0,-0.1))
 				if (media[0] < centro[0]):
-					vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
+					if dadodist < 0.25:
+						vel = Twist(Vector3(0.1,0,0), Vector3(0,0,0.1))
+					if dadodist > 0.25:
+						vel = Twist(Vector3(0.1,0,0), Vector3(0,0,0.1))
 			velocidade_saida.publish(vel)
 			rospy.sleep(0.1)
 
