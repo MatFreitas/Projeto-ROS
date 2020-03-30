@@ -34,8 +34,8 @@ def identifica_cor(frame):
     segmentado_cor = cv2.inRange(frame_hsv, cor_menor, cor_maior)
 
     # Fazendo ele reconhecer a matiz do creeper verde
-    #cor_menor = np.array([120, 50, 50])
-    #cor_maior = np.array([240, 255, 255])
+    #cor_menor = np.array([40, 50, 50])
+    #cor_maior = np.array([100, 255, 255])
     #segmentado_cor = cv2.inRange(frame_hsv, cor_menor, cor_maior)
 
 
