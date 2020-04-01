@@ -34,20 +34,12 @@ check_delay = False
 # Função do scan.
 def scaneou(dado):
 	global dadodist
-	if np.array(dado.ranges[0]).round(decimals=2) < 1:
-		velocidade = Twist(Vector3(0.1, 0, 0), Vector3(0, 0, 0))
-		velocidade_saida.publish(velocidade)
-		print("Ahead Captain!")
-	elif np.array(dado.ranges[0]).round(decimals=2) > 1.02:
-		velocidade = Twist(Vector3(-0.05, 0, 0), Vector3(0, 0, 0.2))
-		velocidade_saida.publish(velocidade)
-		print("Roll back now!")
 	dadodist = dado.ranges[0]
 	x = 0
 
 # A função a seguir é chamada sempre que chega um novo frame
 def roda_todo_frame(imagem):
-	print("frame")
+	#print("frame")
 	global cv_image
 	global maior_area
 	global media
@@ -57,7 +49,7 @@ def roda_todo_frame(imagem):
 	imgtime = imagem.header.stamp
 	lag = now-imgtime # calcula o lag
 	delay = lag.nsecs
-	print("delay ", "{:.3f}".format(delay/1.0E9))
+	#print("delay ", "{:.3f}".format(delay/1.0E9))
 	if delay > atraso and check_delay==True:
 		print("Descartando por causa do delay do frame:", delay)
 		return 
@@ -107,27 +99,76 @@ if __name__=="__main__":
 	velocidade_saida = rospy.Publisher("/cmd_vel", Twist, queue_size = 1)
 
 	try:
-
+		veloc = 0
+		calc = True
 		while not rospy.is_shutdown():
 
 
 			vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
+
 			if len(media) != 0 and len(centro) != 0:
-				print("Média dos vermelhos: {0}, {1}".format(media[0], media[1]))
-				print("Centro dos vermelhos: {0}, {1}".format(centro[0], centro[1]))
+				#print("Média dos vermelhos: {0}, {1}".format(media[0], media[1]))
+				#print("Centro dos vermelhos: {0}, {1}".format(centro[0], centro[1]))
 
-				if maior_area > 600: 
+				if maior_area > 600:
+					if (calc == True):
+						dif = centro[0] - media[0]
+					else:
+						dif = 0
+
+					print("Creeper encontrado em {0} metros!".format(dadodist))
+					print("Dif: {0}!".format(dif))
 					if (media[0] > centro[0]):
-						vel = Twist(Vector3(0.1,0,0), Vector3(0,0,-0.1))
-					if (media[0] < centro[0]):
-						vel = Twist(Vector3(0.1,0,0), Vector3(0,0,0.1))
-				else:
-					vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
+						if (dif > 100):
+							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,-0.1))
+						elif (dif < 100):
+							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,-0.05))
+						elif (dif < 50):
+							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,-0.01))
+						elif (dif < 25):
+							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,-0.0005))
+						"""
+						elif (dif < 10):
+							vel = Twist(Vector3(0.2,0,0), Vector3(0,0,-0.0001))
+						elif (dif < 5):
+							vel = Twist(Vector3(0.5,0,0), Vector3(0,0,0))
+						"""
 
-			print("área: {}".format(maior_area))
-			print("distância frontal: {}".format(dadodist))
+					elif (media[0] < centro[0]):
+						if (dif > -100):
+							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,0.1))
+						elif (dif > -100):
+							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,0.05))
+						elif (dif > -50):
+							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,0.01))
+						elif (dif > -25):
+							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,0.0005))
+						"""
+						elif (dif > -10):
+							vel = Twist(Vector3(0.2,0,0), Vector3(0,0,0.0001))
+						elif (dif > -5):
+							vel = Twist(Vector3(0.5,0,0), Vector3(0,0,0))
+						"""
+					if (dif == 0):
+						veloc = 0.2
+					if dadodist < 0.8:
+						calc = False
+						veloc = 0.5
+					if dadodist < 0.5:
+						calc = False
+						veloc = 5
+
+
+
+				else:
+					vel = Twist(Vector3(0,0,0), Vector3(0,0,0.5))
+					print("Procurando creeper...")
+					veloc = 0
+
+			#print("área: {}".format(maior_area))
+			#print("distância frontal: {}".format(dadodist))
 			velocidade_saida.publish(vel)
 			rospy.sleep(0.1)
 
 	except rospy.ROSInterruptException:
-	    print("Ocorreu uma exceção com o rospy")
+	    print("O ROSPY FECHOU!")
