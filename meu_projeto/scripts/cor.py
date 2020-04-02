@@ -153,10 +153,10 @@ if __name__=="__main__":
 						veloc = 0.2
 					if dadodist < 0.8:
 						calc = False
-						veloc = 0.5
+						veloc = 0.3
 					if dadodist < 0.5:
 						calc = False
-						veloc = 0.1
+						veloc = 0.02
 
 
 
