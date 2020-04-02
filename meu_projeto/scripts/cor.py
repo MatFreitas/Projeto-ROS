@@ -156,7 +156,7 @@ if __name__=="__main__":
 						veloc = 0.5
 					if dadodist < 0.5:
 						calc = False
-						veloc = 5
+						veloc = 0.1
 
 
 
