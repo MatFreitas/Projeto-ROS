@@ -101,69 +101,74 @@ if __name__=="__main__":
 	try:
 		veloc = 0
 		calc = True
+		stop = False
 		while not rospy.is_shutdown():
 
 
 			vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
 
-			if len(media) != 0 and len(centro) != 0:
-				#print("Média dos vermelhos: {0}, {1}".format(media[0], media[1]))
-				#print("Centro dos vermelhos: {0}, {1}".format(centro[0], centro[1]))
+			if stop != True:
+				if len(media) != 0 and len(centro) != 0:
+					#print("Média dos vermelhos: {0}, {1}".format(media[0], media[1]))
+					#print("Centro dos vermelhos: {0}, {1}".format(centro[0], centro[1]))
 
-				if maior_area > 600:
-					if (calc == True):
-						dif = centro[0] - media[0]
+					if maior_area > 600:
+						if (calc == True):
+							dif = centro[0] - media[0]
+						else:
+							dif = 0
+
+						print("Creeper encontrado em {0} metros!".format(dadodist))
+						print("Dif: {0}!".format(dif))
+						if (media[0] > centro[0]):
+							if (dif > 100):
+								vel = Twist(Vector3(veloc,0,0), Vector3(0,0,-0.1))
+							elif (dif < 100):
+								vel = Twist(Vector3(veloc,0,0), Vector3(0,0,-0.05))
+							elif (dif < 50):
+								vel = Twist(Vector3(veloc,0,0), Vector3(0,0,-0.01))
+							elif (dif < 25):
+								vel = Twist(Vector3(veloc,0,0), Vector3(0,0,-0.0005))
+							"""
+							elif (dif < 10):
+								vel = Twist(Vector3(0.2,0,0), Vector3(0,0,-0.0001))
+							elif (dif < 5):
+								vel = Twist(Vector3(0.5,0,0), Vector3(0,0,0))
+							"""
+
+						elif (media[0] < centro[0]):
+							if (dif > -100):
+								vel = Twist(Vector3(veloc,0,0), Vector3(0,0,0.1))
+							elif (dif > -100):
+								vel = Twist(Vector3(veloc,0,0), Vector3(0,0,0.05))
+							elif (dif > -50):
+								vel = Twist(Vector3(veloc,0,0), Vector3(0,0,0.01))
+							elif (dif > -25):
+								vel = Twist(Vector3(veloc,0,0), Vector3(0,0,0.0005))
+							"""
+							elif (dif > -10):
+								vel = Twist(Vector3(0.2,0,0), Vector3(0,0,0.0001))
+							elif (dif > -5):
+								vel = Twist(Vector3(0.5,0,0), Vector3(0,0,0))
+							"""
+						if (dif == 0):
+							veloc = 0.2
+						if dadodist < 0.8:
+							calc = False
+							veloc = 0.1
+						if dadodist < 0.3:
+							calc = False
+							veloc = 0
+							stop = True
+
+
+
 					else:
-						dif = 0
-
-					print("Creeper encontrado em {0} metros!".format(dadodist))
-					print("Dif: {0}!".format(dif))
-					if (media[0] > centro[0]):
-						if (dif > 100):
-							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,-0.1))
-						elif (dif < 100):
-							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,-0.05))
-						elif (dif < 50):
-							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,-0.01))
-						elif (dif < 25):
-							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,-0.0005))
-						"""
-						elif (dif < 10):
-							vel = Twist(Vector3(0.2,0,0), Vector3(0,0,-0.0001))
-						elif (dif < 5):
-							vel = Twist(Vector3(0.5,0,0), Vector3(0,0,0))
-						"""
-
-					elif (media[0] < centro[0]):
-						if (dif > -100):
-							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,0.1))
-						elif (dif > -100):
-							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,0.05))
-						elif (dif > -50):
-							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,0.01))
-						elif (dif > -25):
-							vel = Twist(Vector3(veloc,0,0), Vector3(0,0,0.0005))
-						"""
-						elif (dif > -10):
-							vel = Twist(Vector3(0.2,0,0), Vector3(0,0,0.0001))
-						elif (dif > -5):
-							vel = Twist(Vector3(0.5,0,0), Vector3(0,0,0))
-						"""
-					if (dif == 0):
-						veloc = 0.2
-					if dadodist < 0.8:
-						calc = False
-						veloc = 0.5
-					if dadodist < 0.5:
-						calc = False
-						veloc = 5
-
-
-
-				else:
-					vel = Twist(Vector3(0,0,0), Vector3(0,0,0.5))
-					print("Procurando creeper...")
-					veloc = 0
+						vel = Twist(Vector3(0,0,0), Vector3(0,0,0.5))
+						print("Procurando creeper...")
+						veloc = 0
+			else:
+				vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
 
 			#print("área: {}".format(maior_area))
 			#print("distância frontal: {}".format(dadodist))
