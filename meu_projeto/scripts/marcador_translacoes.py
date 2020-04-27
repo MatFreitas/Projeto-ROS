@@ -27,7 +27,32 @@ tfl = 0
 
 tf_buffer = tf2_ros.Buffer()
 
+def interseccao(x1,y1,x2,y2,x3,y3,x4,y4):
+    x1 = x1
+    y1 = y1
+    x2 = x2
+    y2 = y2
+    x3 = x3
+    y3 = y3
+    x4 = x4
+    y4 = y4
+   
+    # definindo coef angulares
+    if x2-x1 == 0 or x4-x3 == 0:
+        return 0.01, 0.01, 0.01, 0.01, 0.01, 0.01 
+    else:
+        m1 = (y2-y1)/(x2-x1)
+        m2 = (y4-y3)/(x4-x3)
+        # definindo coef lineares
+        h1 = y1 - m1*x1
+        h2 = y3 - m2*x3
+        # achando as coordenadas da intersecção
+        xi = (h2-h1)/(m1-m2)
+        yi = m1*xi+h1
+        # ponto de intersecção (xi,yi)
+        return xi.round(4), yi.round(4), m1.round(4), m2.round(4), h1.round(4), h2.round(4)
 
+	
 def recebe(msg):
 	global x # O global impede a recriacao de uma variavel local, para podermos usar o x global ja'  declarado
 	global y
@@ -35,6 +60,8 @@ def recebe(msg):
 	global id
 	for marker in msg.markers:
 		id = marker.id
+		if id != 2:
+			return 
 		marcador = "ar_marker_" + str(id)
 
 		print(tf_buffer.can_transform(frame, marcador, rospy.Time(0)))
