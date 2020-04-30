@@ -153,7 +153,7 @@ def roda_todo_frame(imagem):
 		cv_image = bridge.compressed_imgmsg_to_cv2(imagem, "bgr8")
 		# Note que os resultados já são guardados automaticamente na variável
 		# chamada resultados
-		centro, imagem, resultados =  visao_module.processa(cv_image)        
+		centro, img, resultados =  visao_module.processa(cv_image)        
 		for r in resultados:
 			# print(r) - print feito para documentar e entender
 			# o resultado            
@@ -162,7 +162,7 @@ def roda_todo_frame(imagem):
 		depois = time.clock()
 		# Desnecessário - Hough e MobileNet já abrem janelas
 		#cv2.imshow("Camera", cv_image)
-		cv_image = imagem.copy()
+		cv_image = img.copy()
 	except CvBridgeError as e:
 		print('ex', e)
 
@@ -191,8 +191,8 @@ if __name__=="__main__":
 
 			# Coloque aqui o que quiser
 			
-			vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.3))
-			#vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
+			#vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.3))
+			vel = Twist(Vector3(0.05,0,0), Vector3(0,0,0))
 
 			frame = cv_image
 
