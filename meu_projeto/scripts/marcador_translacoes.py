@@ -134,11 +134,9 @@ def recebe(msg):
 
 # A função a seguir é chamada sempre que chega um novo frame
 def roda_todo_frame(imagem):
-	print("frame")
 	global cv_image
 	global media
 	global centro
-
 	global resultados
 
 
@@ -164,6 +162,7 @@ def roda_todo_frame(imagem):
 		depois = time.clock()
 		# Desnecessário - Hough e MobileNet já abrem janelas
 		#cv2.imshow("Camera", cv_image)
+		cv_image = imagem.copy()
 	except CvBridgeError as e:
 		print('ex', e)
 
@@ -178,8 +177,8 @@ if __name__=="__main__":
 	rospy.init_node("marcador") # Como nosso programa declara  seu nome para o sistema ROS
 
 	recebedor1 = rospy.Subscriber(topico_imagem, CompressedImage, roda_todo_frame, queue_size=4, buff_size = 2**24)
-
 	recebedor = rospy.Subscriber("/ar_pose_marker", AlvarMarkers, recebe) # Para recebermos notificacoes de que marcadores foram vistos
+
 	velocidade_saida = rospy.Publisher("/cmd_vel", Twist, queue_size = 1) # Para podermos controlar o robo
 
 	tfl = tf2_ros.TransformListener(tf_buffer) # Para fazer conversao de sistemas de coordenadas - usado para calcular angulo
@@ -192,12 +191,15 @@ if __name__=="__main__":
 
 			# Coloque aqui o que quiser
 			
-			# vel = Twist(Vector3(0,0,0), Vector3(0,0,0.3))
-			vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
+			vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.3))
+			#vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
+
+			frame = cv_image
+
 			
 
 
-			if id == 2:
+			if id == 11:
 
 				if y < - 0.55:
 					vel = Twist(Vector3(0.1,0,0), Vector3(0,0,0.15))
@@ -210,7 +212,7 @@ if __name__=="__main__":
 					
 				elif y < - 0 and y >= - 0.15:
 					vel = Twist(Vector3(0.1,0,0), Vector3(0,0,0.02))
-					print("XEGOOOOOOOOOOOOOOOOOOOOOOOOO")
+					print("CHEGOU!")
 
 				
 
@@ -225,12 +227,10 @@ if __name__=="__main__":
 					
 				elif y > 0 and y <= 0.15:
 					vel = Twist(Vector3(0.1,0,0), Vector3(0,0,-0.02))
-					print("XEGOOOOOOOOOOOOOOOOOOOOOOOOO")
+					print("CHEGOU!")
 
 
-			frame = cv_image
-
-			if frame is not None:
+			elif frame is not None:
 				
 				# Our operations on the frame come here
 				rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -328,7 +328,7 @@ if __name__=="__main__":
 			if cv_image is not None:
 				
 				# Note que o imshow precisa ficar *ou* no codigo de tratamento de eventos *ou* no thread principal, não em ambos
-				cv2.imshow("cv_image no loop principal", frame)
+				cv2.imshow("cv_image no loop principal", cv_image)
 				cv2.waitKey(1)
 
 			velocidade_saida.publish(vel)
