@@ -151,10 +151,39 @@ def crosshair(img, point, size, color):
     cv2.line(img,(x - size,y),(x + size,y),color,5)
     cv2.line(img,(x,y - size),(x, y + size),color,5)
 
-def calc_rota(frame, sentido):
+
+def procura_alvo(frame, cor_inf, cor_sup):
+   
+    if frame is not None:
+        # crop na imagem
+        (h, w) = frame.shape[:2]
+        crop = frame[int(h/4):int(3*h/4), 0:w]
+
+        # converte crop para hsv
+        hsv = cv2.cvtColor (crop, cv2.COLOR_BGR2HSV)
+
+        # aplica filtro de cor
+        mask = cv2.inRange(hsv, cor_inf, cor_sup)
+        bgr_mask = cv2.bitwise_and(crop, crop, mask = mask)
+        gray = cv2.cvtColor (bgr_mask, cv2.COLOR_BGR2GRAY)
+
+        # display img
+        cv2.imshow("alvo", mask)
+        
+        # acha os contornos e define ponto médio
+        contornos, arvore = cv2.findContours(gray, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        pt_count = len(contornos)
+
+        if pt_count > 0:
+            return True
+                        
+    return False
+
+
+def calc_rota(frame):
     # condicoes iniciais de velocidade e rotacao
     velx = 0.0
-    rotz = sentido * (math.pi/12)
+    rotz = (math.pi/12)
     if frame is not None:
         # crop na imagem
         (h, w) = frame.shape[:2]
@@ -172,11 +201,6 @@ def calc_rota(frame, sentido):
         bgr_mask = cv2.bitwise_and(crop, crop, mask = mask)
         gray = cv2.cvtColor (bgr_mask, cv2.COLOR_BGR2GRAY)
         
-        # Usando Canny para detectar os contornos
-        #min_contrast = 80
-        #max_contrast = 255
-        #canny_img = cv2.Canny(gray, min_contrast, max_contrast)
-
         # acha os contornos e define ponto médio
         contornos, arvore = cv2.findContours(gray, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         pt_count = len(contornos)
@@ -230,11 +254,10 @@ def calc_rota(frame, sentido):
                 #print(math.degrees(ang))
                         
         # display img
-        cv2.imshow("gray_img", gray)
-        #cv2.imshow("canny_img", canny_img)
+        #cv2.imshow("gray_img", gray)
         
     return velx, rotz
-    
+
 
 # ------------------------------------
 
@@ -255,36 +278,47 @@ if __name__=="__main__":
     # Exemplo de categoria de resultados
     # [('chair', 86.965459585189819, (90, 141), (177, 265))]
 
+    # Objetivo
+    mission_goal = ["green", 23, "bird"]
+    mission_id = mission_goal[1]
+    mission_dest = mission_goal[2]
+
+    # define range de cor para identificacao dos creepers
+    if mission_goal[0] == "blue":
+        cor_inf = np.array([ 95, 80, 80], dtype=np.uint8)
+        cor_sup = np.array([ 110, 255, 255], dtype=np.uint8)
+    elif mission_goal[0] == "green":
+        cor_inf = np.array([ 55, 80, 80], dtype=np.uint8)
+        cor_sup = np.array([ 65, 255, 255], dtype=np.uint8)
+    elif mission_goal[0] == "pink":
+        cor_inf = np.array([ 145, 80, 80], dtype=np.uint8)
+        cor_sup = np.array([ 155, 255, 255], dtype=np.uint8)
+    else:
+        mission_id = -1
+
     try:
         # Inicializando - por default gira no sentido anti-horário
         # vel = Twist(Vector3(0,0,0), Vector3(0,0,math.pi/10.0))
-        recupera = 0
-        sentido = 1
         while not rospy.is_shutdown():
             for r in resultados:
                 print(r)
             
             # ---------------------------------------------
             if cv_image is not None:
-                # calcula ponto futuro da rota
-                velx, rotz = calc_rota(cv_image, sentido)
-                # sentido rotaciona o robo no sentido a favor da pista
-                if velx == 0 and recupera == 0:
-                    recupera = 1
-                    if rotz < 0:
-                        sentido = 1
-                    else:
-                        sentido = -1
-                elif velx > 0 and recupera == 1:
-                    recupera = 0
-
-                print(velx, rotz)
-                vel = Twist(Vector3(velx,0,0), Vector3(0,0,rotz))
-                #vel = Twist(Vector3(0,0,0), Vector3(0,0,math.pi/10.0))
-
+                
+                ret_alvo = procura_alvo(cv_image, cor_inf, cor_sup)
+                if mission_id == id and ret_alvo == True:
+                    print("achei o creeper")
+                    #vel = Twist(Vector3(0.1,0,0), Vector3(0,0,y))
+                else:
+                    # calcula ponto futuro da rota
+                    velx, rotz = calc_rota(cv_image)
+                    #print(velx, rotz)
+                    #vel = Twist(Vector3(velx,0,0), Vector3(0,0,rotz))
+                
                 # Note que o imshow precisa ficar *ou* no codigo de tratamento de eventos *ou* no thread principal, não em ambos
                 #cv2.imshow("cv_image no loop principal", cv_image)
-                velocidade_saida.publish(vel)
+                #velocidade_saida.publish(vel)
             # ---------------------------------------------
             
             cv2.waitKey(1)
