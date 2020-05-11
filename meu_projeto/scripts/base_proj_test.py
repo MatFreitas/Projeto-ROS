@@ -337,10 +337,17 @@ if __name__=="__main__":
                     if scan_dist < 0.5:
                         velx = 0
                         print("creeper capturado")
-                        robo_time0 = time.clock()
                         mission_status = 1
 
                 elif mission_status == 1:
+                    # espera por comando para continuar o processo
+                    comando = raw_input("digite o comando:")
+                    if comando == "g":
+                        print("indo para a base")
+                        robo_time0 = time.clock()
+                        mission_status = 2
+
+                elif mission_status == 2:
                     robo_delay = time.clock() - robo_time0
                     print("delay:", robo_delay)
                     if robo_delay < 40.0:
@@ -350,22 +357,29 @@ if __name__=="__main__":
                     else:
                         velx = 0
                         print("marcha ré finalizada")
-                        mission_status = 2
+                        mission_status = 3
                 
-                elif mission_status == 2 and mission_dest == estacao_atual and estacao_x > 0 and estacao_y > 0:
+                elif mission_status == 3 and mission_dest == estacao_atual and estacao_x > 0 and estacao_y > 0:
                         (h, w) = cv_image.shape[:2]
                         velx, rotz = calc_velx_rotz(w, h, estacao_x, estacao_y)
-                        mission_status = 3
+                        mission_status = 4
                         print("base encontrada")
                         
-                elif mission_status == 3:
+                elif mission_status == 4:
                     if mission_dest == estacao_atual and estacao_x > 0 and estacao_y > 0:
                         (h, w) = cv_image.shape[:2]
                         velx, rotz = calc_velx_rotz(w, h, estacao_x, estacao_y)
                         if scan_dist < 1.0:
-                            mission_status = 4
+                            mission_status = 5
                             
-                elif mission_status == 4:
+                elif mission_status == 5:
+                    # espera por comando para continuar o processo
+                    comando = raw_input("digite o comando:")
+                    if comando == "g":
+                        print("deixou o creeper na estacao")
+                        mission_status = 6
+
+                elif mission_status == 6:
                         print("missão dada é missão cumprida!")
                         velx = 0
                         rotz = 0        
