@@ -10,7 +10,7 @@ import math
 import cv2
 import time
 from nav_msgs.msg import Odometry
-from sensor_msgs.msg import Image, CompressedImage, LaserScan
+from sensor_msgs.msg import Image, CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 from numpy import linalg
 from tf import transformations
@@ -45,15 +45,13 @@ x = 0
 y = 0
 z = 0 
 id = 0
-scan_dist = 190 # inicialmente setamos o laser para uma distancia alta
-
+# teste frame error no lookup
 frame = "camera_link"
 # frame = "head_camera"  # DESCOMENTE para usar com webcam USB via roslaunch tag_tracking usbcam
 
 tfl = 0
 
 tf_buffer = tf2_ros.Buffer()
-
 
 def recebe(msg):
 	global x # O global impede a recriacao de uma variavel local, para podermos usar o x global ja'  declarado
@@ -80,7 +78,8 @@ def recebe(msg):
 		# no eixo X do robo (que e'  a direcao para a frente)
 		t = transformations.translation_matrix([x, y, z])
 		# Encontra as rotacoes e cria uma matriz de rotacao a partir dos quaternions
-		r = transformations.quaternion_matrix([trans.transform.rotation.x, trans.transform.rotation.y, trans.transform.rotation.z, trans.transform.rotation.w])
+		r = transformations.quaternion_matrix([trans.transform.rotation.x, trans.transform.rotation.y, 
+                                              trans.transform.rotation.z, trans.transform.rotation.w])
 		m = numpy.dot(r,t) # Criamos a matriz composta por translacoes e rotacoes
 		z_marker = [0,0,1,0] # Sao 4 coordenadas porque e'  um vetor em coordenadas homogeneas
 		v2 = numpy.dot(m, z_marker)
@@ -128,11 +127,8 @@ def roda_todo_frame(imagem):
     except CvBridgeError as e:
         print('ex', e)
 
-# ------------------------------------
 
-def checa_laser(scan_data):
-	global scan_dist
-	scan_dist = scan_data.ranges[0]
+# ------------------------------------
 
 def center_of_contour(contorno):
     """ Retorna uma tupla (cx, cy) que desenha o centro do contorno"""
@@ -155,151 +151,137 @@ def crosshair(img, point, size, color):
     cv2.line(img,(x - size,y),(x + size,y),color,5)
     cv2.line(img,(x,y - size),(x, y + size),color,5)
 
-def cria_mascara(frame, cor_inf, cor_sup):
-    if frame is not None:
-        # converte crop para hsv
-        hsv = cv2.cvtColor (frame, cv2.COLOR_BGR2HSV)
-        # aplica filtro de cor
-        mask = cv2.inRange(hsv, cor_inf, cor_sup)
-        mask = cv2.morphologyEx(mask,cv2.MORPH_OPEN,np.ones((3, 3)))
-        # display img
-        #cv2.imshow("alvo", mask)
-        return mask
-    else:
-        return None
-    
-def acha_ponto_futuro(mask, cont_ini, cont_final):
-    px, py = 0, 0
-    if mask is not None:
-        # acha os contornos e define ponto médio
-        contornos, arvore = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        pt_count = len(contornos)
-
-        if pt_count > 0:
-            cont_val = 0 # conta o numero de contornos
-            cont_sum = 0 # conta o numero de elementos adicionados
-
-            if cont_ini < 0:
-                cont_ini = 0
-            elif cont_ini >= pt_count:
-                cont_ini = pt_count-1
-
-            if cont_final < 0 or cont_final >= pt_count:
-                cont_ini = pt_count-1
-
-            for c in contornos:
-                a = cv2.contourArea(c) # área
-                p = center_of_contour(c) # centro de massa
-                if cont_val >= cont_ini:
-                    px += p[0]
-                    py += p[1]
-                    #crosshair(mask, p, 5, (80, 80, 80))    
-                    cont_sum += 1
-                    if cont_val >= cont_final:
-                        break
-                cont_val += 1
-                
-            # calcula pt medio
-            if cont_sum > 0:
-                px = int(px / cont_sum)
-                py = int(py / cont_sum)
-                crosshair(mask, (px, py), 5, (128,128,128))
-            else:
-                px, py = mask.shape[1]/2, mask.shape[0]/2
-
-            # display img
-            cv2.imshow("mask_img", mask)
-
-    return px, py
-
-def calc_velx_rotz(img_w, img_h, px, py):
-    velx = 0
-    rotz = 0
-    if img_w > 0 and img_h > 0:
-        # calcula angulo de rotacao
-        # refx será deslocado para a direita para compensar as curvas
-        refx = int(1*img_w/2)
-        refy = img_h-1
-        deltax = px - refx
-        deltay = refy - py
-        
-        ang = math.atan2(deltay, deltax)
-        if ang < 0:
-            ang = -math.pi/2 - ang
-        else:
-            ang = math.pi/2 - ang
-
-        velx = 0.25 # velx max = 0.5
-        # calculo da rotacao depende de velx
-        rotz = (0.25/velx) * (-ang/math.pi)
-        #print(math.degrees(ang))
-
-    return velx, rotz
 
 def procura_alvo(frame, cor_inf, cor_sup):
-    velx = 0
-    rotz = 0
+   
     if frame is not None:
         # crop na imagem
         (h, w) = frame.shape[:2]
         crop = frame[int(h/4):int(3*h/4), 0:w]
 
-        mask = cria_mascara(crop, cor_inf, cor_sup)
-        px, py = acha_ponto_futuro(mask, 0, 3)
-        if px > 0 or py > 0:
-            return calc_velx_rotz(w, h, px, py)    
+        # converte crop para hsv
+        hsv = cv2.cvtColor (crop, cv2.COLOR_BGR2HSV)
 
-    return velx, rotz
+        # aplica filtro de cor
+        mask = cv2.inRange(hsv, cor_inf, cor_sup)
+        bgr_mask = cv2.bitwise_and(crop, crop, mask = mask)
+        gray = cv2.cvtColor (bgr_mask, cv2.COLOR_BGR2GRAY)
+
+        # display img
+        cv2.imshow("alvo", mask)
+        
+        # acha os contornos e define ponto médio
+        contornos, arvore = cv2.findContours(gray, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        pt_count = len(contornos)
+
+        if pt_count > 0:
+            return True
+                        
+    return False
 
 
 def calc_rota(frame):
     # condicoes iniciais de velocidade e rotacao
     velx = 0.0
-    rotz = -(math.pi/12)
+    rotz = (math.pi/12)
     if frame is not None:
         # crop na imagem
         (h, w) = frame.shape[:2]
         crop = frame[int(h/2):h, 0:w]
 
-        # range de cor para filtrar o tracejado amarelo
-        pista_inf = np.array([ 28, 80, 80], dtype=np.uint8)
-        pista_sup = np.array([ 32, 255, 255], dtype=np.uint8)
+        # converte crop para hsv
+        hsv = cv2.cvtColor (crop, cv2.COLOR_BGR2HSV)
 
-        mask = cria_mascara(crop, pista_inf, pista_sup)
-        px, py = acha_ponto_futuro(mask, 1, 4)
-        if px > 0 or py > 0:
-            return calc_velx_rotz(w, h, px, py)  
-                    
+        # range de cor para filtrar o tracejado amarelo
+        cor1_v2 = np.array([ 28, 80, 80], dtype=np.uint8)
+        cor2_v2 = np.array([ 32, 255, 255], dtype=np.uint8)
+
+        # aplica filtro de cor
+        mask = cv2.inRange(hsv, cor1_v2, cor2_v2)
+        bgr_mask = cv2.bitwise_and(crop, crop, mask = mask)
+        gray = cv2.cvtColor (bgr_mask, cv2.COLOR_BGR2GRAY)
+        
+        # acha os contornos e define ponto médio
+        contornos, arvore = cv2.findContours(gray, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        pt_count = len(contornos)
+
+        if pt_count > 0:
+            # pt_val conta o número de elementos encontrados, e pula o primeiro elemento
+            # pt_max define o total de elementos, no caso 3 ou menos
+            px, py = 0, 0
+            pt_val = 0
+            if pt_count > 4:
+                pt_max = 4
+            else:
+                pt_max = pt_count
+        
+            for c in contornos:
+                a = cv2.contourArea(c) # área
+                p = center_of_contour(c) # centro de massa
+                if pt_val < pt_max:
+                    if pt_val > 0:
+                        px += p[0]
+                        py += p[1]
+                        #crosshair(gray, p, 5, (255,255,255))
+                    pt_val += 1
+                else:
+                    break
+                
+            # calcula pt medio
+            if pt_val > 1:
+                pt_val -= 1
+                px = int(px / pt_val)
+                py = int(py / pt_val)
+                crosshair(gray, (px, py), 5, (255,255,255))
+
+                # calcula angulo de rotacao
+                (h, w) = crop.shape[:2]
+                # refx será deslocado para a direita para compensar as curvas
+                refx = int(5*w/9)
+                refy = h-1
+                deltax = px - refx
+                deltay = refy - py
+                
+                ang = math.atan2(deltay, deltax)
+                if ang < 0:
+                    ang = -math.pi/2 - ang
+                else:
+                    ang = math.pi/2 - ang
+
+                velx = 0.25 # velx max = 0.5
+                # calculo da rotacao depende de velx
+                rotz = (0.25/velx) * (-ang/math.pi)
+                #print(math.degrees(ang))
+                        
+        # display img
+        #cv2.imshow("gray_img", gray)
+        
     return velx, rotz
 
-# ------------------------------------ 
+
+# ------------------------------------
 
 if __name__=="__main__":
     rospy.init_node("cor")
 
-    topico_imagem = "/camera/rgb/image_raw/compressed"
-    #topico_imagem = "/raspicam/rgb/image_raw/compressed"
+    topico_imagem = "/raspicam/rgb/image_raw/compressed"
 
-    recebedor = rospy.Subscriber(topico_imagem, CompressedImage, roda_todo_frame, queue_size=4, buff_size = 2**24)
+    recebedor1 = rospy.Subscriber(topico_imagem, CompressedImage, roda_todo_frame, queue_size=4, buff_size = 2**24)
     recebedor = rospy.Subscriber("/ar_pose_marker", AlvarMarkers, recebe) # Para recebermos notificacoes de que marcadores foram vistos
+
     print("Usando ", topico_imagem)
 
-    # Subscriber do laser que devolve array com as distÂncias para o giro de 360°.
-    recebe_scan = rospy.Subscriber("/scan", LaserScan, checa_laser)
-    
     velocidade_saida = rospy.Publisher("/cmd_vel", Twist, queue_size = 1)
 
-    tfl = tf2_ros.TransformListener(tf_buffer) #conversao do sistema de coordenadas 
     tolerancia = 25
 
     # Exemplo de categoria de resultados
     # [('chair', 86.965459585189819, (90, 141), (177, 265))]
 
-     # Objetivo
-    mission_goal = ["blue", 11, "cat"]
+    # Objetivo
+    mission_goal = ["green", 23, "bird"]
     mission_id = mission_goal[1]
     mission_dest = mission_goal[2]
-    mission_status = 0
 
     # define range de cor para identificacao dos creepers
     if mission_goal[0] == "blue":
@@ -317,72 +299,32 @@ if __name__=="__main__":
     try:
         # Inicializando - por default gira no sentido anti-horário
         # vel = Twist(Vector3(0,0,0), Vector3(0,0,math.pi/10.0))
-        
         while not rospy.is_shutdown():
+            for r in resultados:
+                print(r)
+            
             # ---------------------------------------------
-            if len(resultados) > 0:
-                for r in resultados:
-                    estacao_atual = r[0]
-                    estacao_x = int((r[2][0] + r[3][0]) / 2)
-                    estacao_y = int((r[2][1] + r[3][1]) / 2)
-                    print("resultados:", r)
-            else:
-                estacao_atual = "none"
-
             if cv_image is not None:
                 
-                if mission_status == 0 and mission_id == id:
-                    velx, rotz = procura_alvo(cv_image, cor_inf, cor_sup)
-                    #print("scan dist:", scan_dist) 
-                    if scan_dist < 0.5:
-                        velx = 0
-                        print("creeper capturado")
-                        robo_time0 = time.clock()
-                        mission_status = 1
-
-                elif mission_status == 1:
-                    robo_delay = time.clock() - robo_time0
-                    print("delay:", robo_delay)
-                    if robo_delay < 40.0:
-                        # marcha re depois que encontrar o creeper para evitar colisao
-                        rotz = 0
-                        velx = -0.20
-                    else:
-                        velx = 0
-                        print("marcha ré finalizada")
-                        mission_status = 2
-                
-                elif mission_status == 2 and mission_dest == estacao_atual and estacao_x > 0 and estacao_y > 0:
-                        (h, w) = cv_image.shape[:2]
-                        velx, rotz = calc_velx_rotz(w, h, estacao_x, estacao_y)
-                        mission_status = 3
-                        print("base encontrada")
-                        
-                elif mission_status == 3:
-                    if mission_dest == estacao_atual and estacao_x > 0 and estacao_y > 0:
-                        (h, w) = cv_image.shape[:2]
-                        velx, rotz = calc_velx_rotz(w, h, estacao_x, estacao_y)
-                        if scan_dist < 1.0:
-                            mission_status = 4
-                            
-                elif mission_status == 4:
-                        print("missão dada é missão cumprida!")
-                        velx = 0
-                        rotz = 0        
-                        
+                ret_alvo = procura_alvo(cv_image, cor_inf, cor_sup)
+                if mission_id == id and ret_alvo == True:
+                    print("achei o creeper")
+                    #vel = Twist(Vector3(0.1,0,0), Vector3(0,0,y))
                 else:
+                    # calcula ponto futuro da rota
                     velx, rotz = calc_rota(cv_image)
-
-                #print(velx, rotz)
-                vel = Twist(Vector3(velx,0,0), Vector3(0,0,rotz))
-                    
+                    #print(velx, rotz)
+                    #vel = Twist(Vector3(velx,0,0), Vector3(0,0,rotz))
+                
                 # Note que o imshow precisa ficar *ou* no codigo de tratamento de eventos *ou* no thread principal, não em ambos
                 #cv2.imshow("cv_image no loop principal", cv_image)
-                velocidade_saida.publish(vel)
-                cv2.waitKey(1)
+                #velocidade_saida.publish(vel)
             # ---------------------------------------------
-
+            
+            cv2.waitKey(1)
             rospy.sleep(0.1)
 
     except rospy.ROSInterruptException:
         print("Ocorreu uma exceção com o rospy")
+
+
