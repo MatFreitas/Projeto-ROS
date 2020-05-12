@@ -231,7 +231,8 @@ def calc_velx_rotz(img_w, img_h, px, py):
 
         velx = 0.25 # velx max = 0.5
         # calculo da rotacao depende de velx
-        rotz = (0.25/velx) * (-ang/math.pi)
+        #rotz = (0.25/velx) * (-ang/math.pi)
+        rotz = -ang/math.pi
         #print(math.degrees(ang))
 
     return velx, rotz
@@ -296,7 +297,7 @@ if __name__=="__main__":
     # [('chair', 86.965459585189819, (90, 141), (177, 265))]
 
      # Objetivo
-    mission_goal = ["blue", 11, "cat"]
+    mission_goal = ["blue", 11, "dog"]
     mission_id = mission_goal[1]
     mission_dest = mission_goal[2]
     mission_status = 0
@@ -334,7 +335,7 @@ if __name__=="__main__":
                 if mission_status == 0 and mission_id == id:
                     velx, rotz = procura_alvo(cv_image, cor_inf, cor_sup)
                     #print("scan dist:", scan_dist) 
-                    if scan_dist < 0.5:
+                    if scan_dist < 0.4:
                         velx = 0
                         print("creeper capturado")
                         mission_status = 1
@@ -350,7 +351,7 @@ if __name__=="__main__":
                 elif mission_status == 2:
                     robo_delay = time.clock() - robo_time0
                     print("delay:", robo_delay)
-                    if robo_delay < 40.0:
+                    if robo_delay < 70.0:
                         # marcha re depois que encontrar o creeper para evitar colisao
                         rotz = 0
                         velx = -0.20
@@ -369,7 +370,9 @@ if __name__=="__main__":
                     if mission_dest == estacao_atual and estacao_x > 0 and estacao_y > 0:
                         (h, w) = cv_image.shape[:2]
                         velx, rotz = calc_velx_rotz(w, h, estacao_x, estacao_y)
-                        if scan_dist < 1.0:
+                        if scan_dist < 0.5:
+                            velx = 0
+                            rotz = 0
                             mission_status = 5
                             
                 elif mission_status == 5:
