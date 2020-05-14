@@ -2,7 +2,7 @@ Comandos importantes:
 
 Ctrl + Alt + t
 
-roslaunch my_simulation proj1.launch
+roslaunch my_simulation proj1_base.launch
 
 Ctrl + Shift + t
 
