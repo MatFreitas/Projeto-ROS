@@ -297,7 +297,7 @@ if __name__=="__main__":
     # [('chair', 86.965459585189819, (90, 141), (177, 265))]
 
      # Objetivo
-    mission_goal = ["blue", 11, "dog"]
+    mission_goal = ["blue", 11, "cat"]
     mission_id = mission_goal[1]
     mission_dest = mission_goal[2]
     mission_status = 0
