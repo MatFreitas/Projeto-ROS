@@ -1,5 +1,11 @@
 Comandos importantes:
 
+#############################################################
+Se quisermos trabalhar na rubrica B, é necessário utilizar uma outra versão do repositório "my_simulation". Para isso precisamos executar os seguintes comandos:
+$ cd ~/catkin_ws/src/my_simulation
+$ git reset --hard b2ba48085658867be96fbf209141400671b31728
+#############################################################
+
 Ctrl + Alt + t
 
 roslaunch my_simulation proj1_base.launch
