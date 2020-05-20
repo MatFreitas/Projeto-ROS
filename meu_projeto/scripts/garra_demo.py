@@ -93,7 +93,7 @@ class MoveGroupPythonIntefaceTutorial(object):
         ##
         ## First initialize `moveit_commander`_ and a `rospy`_ node:
         moveit_commander.roscpp_initialize(sys.argv)
-        rospy.init_node('move_group_python_interface_tutorial', anonymous=True)
+        #rospy.init_node('move_group_python_interface_tutorial', anonymous=True)
 
         ## Instantiate a `RobotCommander`_ object. Provides information such as the robot's
         ## kinematic model and the robot's current joint states
@@ -121,8 +121,8 @@ class MoveGroupPythonIntefaceTutorial(object):
         # gripper_sub_group = moveit_commander.MoveGroupCommander(gripper_sub_name)
 
         ## Print: Methods available in move_group
-        print("Methods available in move_group")
-        print(dir(move_group))
+        #print("Methods available in move_group")
+        #print(dir(move_group))
 
         ## Create a `DisplayTrajectory`_ ROS publisher which is used to display
         ## trajectories in Rviz:
@@ -138,28 +138,28 @@ class MoveGroupPythonIntefaceTutorial(object):
         ## ^^^^^^^^^^^^^^^^^^^^^^^^^
         # We can get the name of the reference frame for this robot:
         planning_frame = move_group.get_planning_frame()
-        print("============ Planning frame: %s" % planning_frame)
+        #print("============ Planning frame: %s" % planning_frame)
 
         planning_frame_gripper = gripper_group.get_planning_frame()
-        print("============ Planning frame for gripper: {}".format(planning_frame_gripper))    
+        #print("============ Planning frame for gripper: {}".format(planning_frame_gripper))    
 
         # We can also print the name of the end-effector link for this group:
         eef_link = move_group.get_end_effector_link()
-        print("============ End effector link: %s" % eef_link)
+        #print("============ End effector link: %s" % eef_link)
 
 
         # We can also print the name of the end-effector link for this group:
         eef_link_gripper = gripper_group.get_end_effector_link()
-        print("============ End effector link: %s" % eef_link_gripper)
+        #print("============ End effector link: %s" % eef_link_gripper)
 
         # We can get a list of all the groups in the robot:
         group_names = robot.get_group_names()
-        print("============ Available Planning Groups:", robot.get_group_names())
+        #print("============ Available Planning Groups:", robot.get_group_names())
 
         # Sometimes for debugging it is useful to print the entire state of the
         # robot:
-        print("============ Printing robot state")
-        print(robot.get_current_state())
+        #print("============ Printing robot state")
+        #print(robot.get_current_state())
         ## END_SUB_TUTORIAL
 
         # Misc variables
@@ -221,7 +221,7 @@ class MoveGroupPythonIntefaceTutorial(object):
         ## thing we want to do is move it to a slightly better configuration.
         # We can get the joint values from the group and adjust some of the values:
         current_position = move_group.get_current_joint_values()
-        print("Current gripper position", current_position)
+        #print("Current gripper position", current_position)
         
         open_angles =  (0.019,0.019)
         
@@ -256,7 +256,7 @@ class MoveGroupPythonIntefaceTutorial(object):
         current_position = move_group.get_current_joint_values()
 
         current_position = move_group.get_current_joint_values()
-        print("Current gripper position", current_position)
+        #print("Current gripper position", current_position)
         
         close_angles =  (-0.01, -0.01)
         
