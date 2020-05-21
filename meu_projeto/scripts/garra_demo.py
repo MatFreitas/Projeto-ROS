@@ -322,7 +322,7 @@ class MoveGroupPythonIntefaceTutorial(object):
         ## end-effector:
         
 
-        init_position = (0.173, 0.0, 0.32)
+        init_position = (0.194, 0.0, 0.304)
 
 
         move_group.set_position_target(init_position)
@@ -358,7 +358,7 @@ class MoveGroupPythonIntefaceTutorial(object):
         ## end-effector:
         
 
-        home_position = (0.046, 0.0, 0.345)
+        home_position = (0.194, 0.140, 0.304)
 
 
         move_group.set_position_target(home_position)

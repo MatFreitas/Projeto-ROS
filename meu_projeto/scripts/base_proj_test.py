@@ -311,6 +311,14 @@ if __name__=="__main__":
     # Exemplo de categoria de resultados
     # [('chair', 86.965459585189819, (90, 141), (177, 265))]
 
+    # Status
+    status_ini = 0
+    status_alvo = 1
+    status_garra = 2
+    status_re = 10
+    status_base = 20
+    status_end = 30
+
      # Objetivo
     mission_goal = ["blue", 11, "cat"]
     mission_id = mission_goal[1]
@@ -352,58 +360,92 @@ if __name__=="__main__":
 
             if cv_image is not None:
 
-                if mission_status == 0:
+                if mission_status == status_ini:
+                
                     robo_delay = time.clock() - robo_time0
                     #print("delay:", robo_delay)
                     if robo_delay > 10.0:
                         print("iniciando robot")
-                        mission_status = 1
+                        mission_status = status_alvo
                 
-                elif mission_status == 1 and mission_id == id:
+                elif mission_status == status_alvo and mission_id == id:
+
                     dist_alvo = math.sqrt(x*x + y*y)
                     velx, rotz = procura_alvo(cv_image, cor_inf, cor_sup)
                     print("dist do alvo:", dist_alvo)
                     
-                    if dist_alvo < 0.2:
+                    if dist_alvo < 0.6:
                         velx = 0
-                        print("fechando a garra")
-                        controla_garra(2)
-                        robo_time0 = time.clock()
-                        mission_status = 2   
-
-                    elif dist_alvo < 0.4:
-                        print("abrindo a garra")
-                        controla_garra(1)
-                        velx = 0.02
-
-                    elif dist_alvo < 0.6:
-                        print("inicia a garra")
-                        controla_garra(0)
-                        velx = 0.02
+                        mission_status = status_garra
 
                     elif dist_alvo < 0.9:
                         velx = 0.05
                         print("desacelerando")
 
-                elif mission_status == 2:
+                elif mission_status == status_garra:
+                    
+                    velx = 0
+                    print("inicia a garra")
+                    robo_time0 = time.clock()
+                    controla_garra(0)
+                    mission_status = status_garra + 1
+
+                elif mission_status == status_garra + 1:
+
+                    velx = 0
+                    robo_delay = time.clock() - robo_time0
+                    #print("delay:", robo_delay)
+                    if robo_delay > 20.0:
+                        print("abrindo a garra")
+                        robo_time0 = time.clock()
+                        controla_garra(1)
+                        mission_status = status_garra + 2
+                
+                elif mission_status == status_garra + 2:
+                    
+                    velx = 0
                     robo_delay = time.clock() - robo_time0
                     #print("delay:", robo_delay)
                     if robo_delay > 10.0:
-                        print("move a garra")
-                        controla_garra(3)
-                        robo_time0 = time.clock()
-                        mission_status = 3
+                        print("movendo robo pra frente")
+                        velx, rotz = procura_alvo(cv_image, cor_inf, cor_sup)
+                        velx = 0.02
+                        print("scan_dist: ", scan_dist)
+                        if scan_dist < 0.19:
+                            velx = 0.0
+                            mission_status = status_garra + 3
+                            
+                elif mission_status == status_garra + 3:
+                    
+                    velx = 0
+                    print("fecha a garra")
+                    robo_time0 = time.clock()
+                    controla_garra(2)
+                    mission_status = status_garra + 4
 
-                elif mission_status == 3:
+                elif mission_status == status_garra + 4:
+
+                    velx = 0
+                    robo_delay = time.clock() - robo_time0
+                    #print("delay:", robo_delay)
+                    if robo_delay > 15.0:
+                        print("move a garra")
+                        robo_time0 = time.clock()
+                        controla_garra(3)
+                        mission_status = status_re
+                
+                elif mission_status == status_re:
+
                     velx = 0
                     robo_delay = time.clock() - robo_time0
                     #print("delay:", robo_delay)
                     if robo_delay > 5.0:
                         print("acionando ré")
                         robo_time0 = time.clock()
-                        mission_status = 4 
+                        mission_status = status_re + 1
                  
-                elif mission_status == 4:
+                elif mission_status == status_re + 1:
+
                     robo_delay = time.clock() - robo_time0
                     print("delay:", robo_delay)
                     if robo_delay < 25.0:
@@ -413,35 +455,36 @@ if __name__=="__main__":
                     else:
                         velx = 0
                         print("marcha ré finalizada")
-                        mission_status = 5
+                        mission_status = status_base
                 
-                elif mission_status == 5 and mission_dest == estacao_atual and estacao_x > 0 and estacao_y > 0:
+                elif mission_status == status_base and mission_dest == estacao_atual and estacao_x > 0 and estacao_y > 0:
+                        
                         (h, w) = cv_image.shape[:2]
                         velx, rotz = calc_velx_rotz(w, h, estacao_x, estacao_y)
-                        mission_status = 6
+                        mission_status = status_base + 1
                         print("base encontrada")
                         
-                elif mission_status == 6:
+                elif mission_status == status_base + 1:
+                    
                     if mission_dest == estacao_atual and estacao_x > 0 and estacao_y > 0:
                         (h, w) = cv_image.shape[:2]
                         velx, rotz = calc_velx_rotz(w, h, estacao_x, estacao_y)
                         if scan_dist < 0.5:
                             velx = 0
-                            rotz = 0
-                            mission_status = 7
+                            mission_status = status_base + 2
                             
-                elif mission_status == 7:
-                    # espera por comando para continuar o processo
-                    comando = raw_input("digite o comando:")
-                    if comando == "g":
-                        print("deixou o creeper na estacao")
-                        mission_status = 8
+                elif mission_status == status_base + 2:
+                    
+                    velx = 0
+                    print("deixou o creeper na estacao")
+                    controla_garra(1)
+                    mission_status = status_end
 
-                elif mission_status == 8:
+                elif mission_status == status_end:
                         print("missão dada é missão cumprida!")
                         velx = 0
                         rotz = 0        
-                        
+
                 else:
                     velx, rotz = calc_rota(cv_image)
 
