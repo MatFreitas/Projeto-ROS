@@ -41,5 +41,5 @@ O código possui um objetivo (lista) chamado "mission_goal", nela, o primeiro el
 que capturar, o segundo é o "id" do creeper alvo e o terceiro é a base que o turtlebot vai devolver/soltar esse creeper. \
 Por exemplo, o primeiro "goal" é: ["blue", 11, "cat"]
 ### Bugs, glitches ou outros problemas
-Contatar algum dos emails acima.
-__
+Contatar algum dos emails acima. \
+___
