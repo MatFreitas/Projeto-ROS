@@ -13,7 +13,7 @@ ___
 **Link vídeo demonstração do robô pegando creepers manualmente:** https://www.youtube.com/watch?v=QkfvS4Prgsw&feature=youtu.be
 
 ## Descrição
-O Projeto ROS é um repositório com tarefas da disciplina de Robótica Computacional, 3º Semestre de Engenharia de Computação do\ Insper.
+O Projeto ROS é um repositório com tarefas da disciplina de Robótica Computacional, orientada pelos professores Fábio Miranda e Antônio Selvatici, 3º Semestre de Engenharia de Computação do Insper.
 Este repositório é dependendente de vários outros repositórios, principalmente desses:\
 \
 robot20: https://github.com/Insper/robot20 --> Enunciado das atividades e Projeto 1 \
@@ -38,4 +38,7 @@ $ roslaunch turtlebot3_manipulation_moveit_config move_group.launch \
 $ rosrun meu_projeto base_proj_rubricaA.py
 ### Detalhando o processo:
 O código possui um objetivo (lista) chamado "mission_goal", nela, o primeiro elemento é a cor do creeper que o robô vai ter\
-que capturar, o segundo é o "id" do creeper alvo e o terceiro é a base que o turtlebot vai devolver/soltar esse creeper.
+que capturar, o segundo é o "id" do creeper alvo e o terceiro é a base que o turtlebot vai devolver/soltar esse creeper. \
+Por exemplo, o primeiro "goal" é: ["blue", 11, "cat"]
+### Bugs, glitches ou outros problemas
+Contatar algum dos emails acima.
