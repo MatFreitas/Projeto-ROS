@@ -17,7 +17,7 @@ ___
 **Link vídeo demonstração rubrica A goal 2:** https://web.microsoftstream.com/video/79b7c58c-82d2-4f69-ad2b-8bc9f4e356a4
 
 ## Descrição
-O Projeto ROS é um repositório com tarefas da disciplina de Robótica Computacional, orientada pelos professores Fábio Miranda e Antônio Selvatici, 3º Semestre de Engenharia de Computação do Insper. \
+O Projeto ROS é um repositório com tarefas da disciplina de Robótica Computacional, orientada pelos professores Fábio Miranda e Antônio Selvatici, 3º Semestre de Engenharia de Computação do Insper 2020. \
 Este repositório é dependendente de vários outros repositórios, principalmente desses:\
 \
 robot20: https://github.com/Insper/robot20 --> Enunciado das atividades e Projeto 1 \
