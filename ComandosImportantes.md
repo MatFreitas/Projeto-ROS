@@ -8,7 +8,7 @@ $ git reset --hard b2ba48085658867be96fbf209141400671b31728
 
 Ctrl + Alt + t
 
-roslaunch my_simulation proj1_base.launch
+roslaunch my_simulation proj1_mult.launch
 
 Ctrl + Shift + t
 
