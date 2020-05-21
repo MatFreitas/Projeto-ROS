@@ -4,7 +4,7 @@
 **Edgard Ortiz** email: edgardaon@al.insper.edu.br
 
 
-**Matheus Freitas**
+**Matheus Freitas** email: matheusfs2@al.insper.edu.br
 
 
 **Henrique Mualem**
