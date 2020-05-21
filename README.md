@@ -13,7 +13,7 @@ ___
 **Link vídeo demonstração do robô pegando creepers manualmente:** https://www.youtube.com/watch?v=QkfvS4Prgsw&feature=youtu.be
 
 ## Descrição
-O Projeto ROS é um repositório com tarefas da disciplina de Robótica Computacional, orientada pelos professores Fábio Miranda e Antônio Selvatici, 3º Semestre de Engenharia de Computação do Insper.
+O Projeto ROS é um repositório com tarefas da disciplina de Robótica Computacional, orientada pelos professores Fábio Miranda e Antônio Selvatici, 3º Semestre de Engenharia de Computação do Insper. \
 Este repositório é dependendente de vários outros repositórios, principalmente desses:\
 \
 robot20: https://github.com/Insper/robot20 --> Enunciado das atividades e Projeto 1 \
@@ -42,3 +42,4 @@ que capturar, o segundo é o "id" do creeper alvo e o terceiro é a base que o t
 Por exemplo, o primeiro "goal" é: ["blue", 11, "cat"]
 ### Bugs, glitches ou outros problemas
 Contatar algum dos emails acima.
+__
