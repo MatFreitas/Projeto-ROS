@@ -363,10 +363,11 @@ if __name__=="__main__":
             # ---------------------------------------------
             if len(resultados) > 0:
                 for r in resultados:
-                    estacao_atual = r[0]
-                    estacao_x = int((r[2][0] + r[3][0]) / 2)
-                    estacao_y = int((r[2][1] + r[3][1]) / 2)
-                    print("resultados:", r)
+                    if r[0] != "diningtable":
+                        estacao_atual = r[0]
+                        estacao_x = int((r[2][0] + r[3][0]) / 2)
+                        estacao_y = int((r[2][1] + r[3][1]) / 2)
+                        print("resultados:", r)
             else:
                 estacao_atual = "none"
 
