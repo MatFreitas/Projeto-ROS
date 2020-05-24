@@ -169,6 +169,7 @@ def cria_mascara(frame, cor_inf, cor_sup):
     
 def acha_ponto_futuro(mask, cont_ini, cont_final):
     px, py = 0, 0
+    area_sum = 0
     if mask is not None:
         # acha os contornos e define ponto médio
         contornos, arvore = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -177,6 +178,7 @@ def acha_ponto_futuro(mask, cont_ini, cont_final):
         if pt_count > 0:
             cont_val = 0 # conta o numero de contornos
             cont_sum = 0 # conta o numero de elementos adicionados
+            area_sum = 0 # conta a area total dos elementos encontrados
 
             if cont_ini < 0:
                 cont_ini = 0
@@ -188,6 +190,7 @@ def acha_ponto_futuro(mask, cont_ini, cont_final):
 
             for c in contornos:
                 a = cv2.contourArea(c) # área
+                area_sum += a
                 p = center_of_contour(c) # centro de massa
                 if cont_val >= cont_ini:
                     px += p[0]
@@ -209,7 +212,7 @@ def acha_ponto_futuro(mask, cont_ini, cont_final):
             # display img
             cv2.imshow("mask_img", mask)
 
-    return px, py
+    return px, py, area_sum
 
 def calc_velx_rotz(img_w, img_h, px, py):
     velx = 0
@@ -239,17 +242,18 @@ def calc_velx_rotz(img_w, img_h, px, py):
 def procura_alvo(frame, cor_inf, cor_sup):
     velx = 0
     rotz = 0
+    area = 0
     if frame is not None:
         # crop na imagem
         (h, w) = frame.shape[:2]
         crop = frame[int(h/4):int(3*h/4), 0:w]
 
         mask = cria_mascara(crop, cor_inf, cor_sup)
-        px, py = acha_ponto_futuro(mask, 0, 3)
+        px, py, area = acha_ponto_futuro(mask, 0, 3)
         if px > 0 or py > 0:
-            return calc_velx_rotz(w, h, px, py)    
+            velx, rotz = calc_velx_rotz(w, h, px, py)
 
-    return velx, rotz
+    return velx, rotz, area
 
 
 def calc_rota(frame):
@@ -266,7 +270,7 @@ def calc_rota(frame):
         pista_sup = np.array([ 32, 255, 255], dtype=np.uint8)
 
         mask = cria_mascara(crop, pista_inf, pista_sup)
-        px, py = acha_ponto_futuro(mask, 1, 4)
+        px, py, area = acha_ponto_futuro(mask, 1, 4)
         if px > 0 or py > 0:
             return calc_velx_rotz(w, h, px, py)  
                     
@@ -320,10 +324,16 @@ if __name__=="__main__":
     status_end = 30
 
      # Objetivo
-    mission_goal = ["blue", 11, "cat"]
+    #mission_goal = ["blue", 11, "cat"]
+    #mission_goal = ["green", 22, "dog"]
+    mission_goal = ["pink", 12, "bicycle"]
     mission_id = mission_goal[1]
     mission_dest = mission_goal[2]
     mission_status = 0
+    alvo_loc = 0
+    alvo_buffer = 60
+    area_min = 16500
+    alvo_dist_mode = 0
     velx = 0
     rotz = 0  
 
@@ -337,6 +347,8 @@ if __name__=="__main__":
     elif mission_goal[0] == "pink":
         cor_inf = np.array([ 145, 80, 80], dtype=np.uint8)
         cor_sup = np.array([ 155, 255, 255], dtype=np.uint8)
+        if mission_id == 12:
+            alvo_dist_mode = 0
     else:
         mission_id = -1
 
@@ -368,23 +380,55 @@ if __name__=="__main__":
                         print("iniciando robot")
                         mission_status = status_alvo
                 
-                elif mission_status == status_alvo and mission_id == id:
+                elif mission_status == status_alvo:
 
-                    dist_alvo = math.sqrt(x*x + y*y)
-                    velx, rotz = procura_alvo(cv_image, cor_inf, cor_sup)
-                    print("dist do alvo:", dist_alvo)
+                    if mission_id == id:
+                        alvo_loc = alvo_buffer
+                    else:
+                        alvo_loc -= 1
+    
+                    if alvo_loc == alvo_buffer:
+
+                        velx, rotz, area = procura_alvo(cv_image, cor_inf, cor_sup)
+                        print("id: {} area {}".format(id, area))
+
+                        if area > area_min:
+                        
+                            if alvo_dist_mode == 1:
+                                # usa o laser para medir a dist
+                                dist_alvo = scan_dist
+                                dist1 = 1.5
+                                dist2 = 1.2
+                                dist3 = 1.0
+                            else:
+                                # usa x e y da funcao recebe()
+                                dist_alvo = math.sqrt(x*x + y*y)
+                                dist1 = 0.9
+                                dist2 = 0.6
+                                dist3 = 0.18
+                            
+                            print("dist do alvo:", dist_alvo)
+
+                            if dist_alvo < dist2:
+                                velx = 0
+                                mission_status = status_garra
+
+                            elif dist_alvo < dist1:
+                                velx = 0.05
+                                print("desacelerando")
                     
-                    if dist_alvo < 0.6:
-                        velx = 0
-                        mission_status = status_garra
-
-                    elif dist_alvo < 0.9:
-                        velx = 0.05
-                        print("desacelerando")
+                    elif alvo_loc > 0:
+                        rotz = 0
+                        print("alvo loc:", alvo_loc)
+                    
+                    else:
+                        alvo_loc = 0
+                        velx, rotz = calc_rota(cv_image)
 
                 elif mission_status == status_garra:
                     
                     velx = 0
+                    rotz = 0
                     print("inicia a garra")
                     robo_time0 = time.clock()
                     controla_garra(0)
@@ -393,6 +437,7 @@ if __name__=="__main__":
                 elif mission_status == status_garra + 1:
 
                     velx = 0
+                    rotz = 0
                     robo_delay = time.clock() - robo_time0
                     #print("delay:", robo_delay)
                     if robo_delay > 20.0:
@@ -404,20 +449,22 @@ if __name__=="__main__":
                 elif mission_status == status_garra + 2:
                     
                     velx = 0
+                    rotz = 0
                     robo_delay = time.clock() - robo_time0
                     #print("delay:", robo_delay)
                     if robo_delay > 10.0:
                         print("movendo robo pra frente")
-                        velx, rotz = procura_alvo(cv_image, cor_inf, cor_sup)
+                        velx, rotz, area = procura_alvo(cv_image, cor_inf, cor_sup)
                         velx = 0.02
                         print("scan_dist: ", scan_dist)
-                        if scan_dist < 0.19:
+                        if scan_dist < dist3:
                             velx = 0.0
                             mission_status = status_garra + 3
                             
                 elif mission_status == status_garra + 3:
                     
                     velx = 0
+                    rotz = 0
                     print("fecha a garra")
                     robo_time0 = time.clock()
                     controla_garra(2)
@@ -426,6 +473,7 @@ if __name__=="__main__":
                 elif mission_status == status_garra + 4:
 
                     velx = 0
+                    rotz = 0
                     robo_delay = time.clock() - robo_time0
                     #print("delay:", robo_delay)
                     if robo_delay > 15.0:
@@ -437,6 +485,7 @@ if __name__=="__main__":
                 elif mission_status == status_re:
 
                     velx = 0
+                    rotz = 0
                     robo_delay = time.clock() - robo_time0
                     #print("delay:", robo_delay)
                     if robo_delay > 5.0:
@@ -445,12 +494,11 @@ if __name__=="__main__":
                         mission_status = status_re + 1
                  
                 elif mission_status == status_re + 1:
-
+                    rotz = 0
                     robo_delay = time.clock() - robo_time0
                     print("delay:", robo_delay)
                     if robo_delay < 25.0:
                         # marcha re depois que encontrar o creeper para evitar colisao
-                        rotz = 0
                         velx = -0.20
                     else:
                         velx = 0
