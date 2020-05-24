@@ -363,7 +363,7 @@ if __name__=="__main__":
             # ---------------------------------------------
             if len(resultados) > 0:
                 for r in resultados:
-                    if r[0] != 'diningtable':
+                    if r[0] != "diningtable":
                         estacao_atual = r[0]
                         estacao_x = int((r[2][0] + r[3][0]) / 2)
                         estacao_y = int((r[2][1] + r[3][1]) / 2)
@@ -406,7 +406,7 @@ if __name__=="__main__":
                                 dist_alvo = math.sqrt(x*x + y*y)
                                 dist1 = 0.9
                                 dist2 = 0.6
-                                dist3 = 0.185
+                                dist3 = 0.18
                             
                             print("dist do alvo:", dist_alvo)
 
@@ -518,7 +518,6 @@ if __name__=="__main__":
                     if mission_dest == estacao_atual and estacao_x > 0 and estacao_y > 0:
                         (h, w) = cv_image.shape[:2]
                         velx, rotz = calc_velx_rotz(w, h, estacao_x, estacao_y)
-                        print("ooooooooooooooooooooooooooooooooooooooooooooooooooo")
                         if scan_dist < 0.5:
                             velx = 0
                             mission_status = status_base + 2
@@ -537,9 +536,6 @@ if __name__=="__main__":
 
                 else:
                     velx, rotz = calc_rota(cv_image)
-                    print("estacao_atual: {}".format(estacao_atual))
-                    print("x: {}".format(estacao_x))
-                    print("y: {}".format(estacao_y))
 
                 #print(velx, rotz)
                 vel = Twist(Vector3(velx,0,0), Vector3(0,0,rotz))
