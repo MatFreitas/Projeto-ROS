@@ -29,7 +29,7 @@ my_simulation: https://github.com/arnaldojr/my_simulation --> Mapas para simula�
 O Projeto 1 consiste em uma simulação de um turtlebot (Waffle) que captura obejtos, no caso "Creepers", automaticamente.
 ### Como executá-lo:
 Para rodar o Projeto 1, é preciso estar com o repositório "robot20" atualizado e, para rodar com versão automatizada do \
-robô, é necessário estar com o "my_simulation" nesse commit: 30986a4ea7ecaa0d7f90f2548c53b97faded4eca (para voltar para este 
+robô, é necessário estar com o "my_simulation" nesse commit: 30986a4ea7ecaa0d7f90f2548c53b97faded4eca , para voltar para este 
 commit, digite o comando no bash/terminal:\
 $ git reset --hard 30986a4ea7ecaa0d7f90f2548c53b97faded4eca \
 Após estar com esses repositórios ajustados é necessário, apenas caso o modelo do seu turtlebot no Gazebo não estiver com a \
