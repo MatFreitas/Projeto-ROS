@@ -7,7 +7,7 @@
 **Matheus Freitas** email: matheusfs2@al.insper.edu.br
 
 
-**Henrique Mualem**
+**Henrique Mualem** email: henriquemm3@al.insper.edu.br
 
 ___
 **Link vídeo demonstração do robô pegando creepers manualmente:** https://www.youtube.com/watch?v=QkfvS4Prgsw&feature=youtu.be
