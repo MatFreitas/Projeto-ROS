@@ -503,7 +503,7 @@ if __name__=="__main__":
                         velx = -0.20
                     else:
                         velx = 0
-                        print("marcha ré finalizada")
+                        print("marcha ré finalizada!")
                         mission_status = status_base
                 
                 elif mission_status == status_base and mission_dest == estacao_atual and estacao_x > 0 and estacao_y > 0:
